@@ -1,0 +1,8 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = https://j053ph4:wr4ngl3r@github.com/j053ph4/ZenPacks.community.zenJavaTerracotta.git
+	fetch = +refs/heads/*:refs/remotes/origin/*

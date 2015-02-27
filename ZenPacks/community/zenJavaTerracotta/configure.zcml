@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <configure
+        xmlns="http://namespaces.zope.org/zope"
+        xmlns:browser="http://namespaces.zope.org/browser"
+        xmlns:zcml="http://namespaces.zope.org/zcml">
+        <configure zcml:condition="installed Products.Zuul">
+
+            <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+
+
+            <!-- ZenPack Info -->
+
+            <browser:directRouter
+                name="zenJavaTerracotta_router"
+                for="*"
+                class="ZenPacks.community.zenJavaTerracotta.routers.zenJavaTerracottaRouter"
+                namespace="Zenoss.remote"
+                permission="zenoss.View"
+            />
+    
+            <adapter
+                name="zenJavaTerracottaAdapter"
+                provides="ZenPacks.community.zenJavaTerracotta.interfaces.IzenJavaTerracottaFacade"
+                for="*"
+                factory="ZenPacks.community.zenJavaTerracotta.facades.zenJavaTerracottaFacade"
+            />
+                
+            <browser:resourceDirectory
+                    name="zenJavaTerracotta"
+                    directory="resources"
+            />
+
+            <!-- Component Info -->
+            <adapter factory="ZenPacks.community.zenJavaTerracotta.info.TerracottaServerInfo"
+                for="ZenPacks.community.zenJavaTerracotta.TerracottaServer.TerracottaServer"
+                provides="ZenPacks.community.zenJavaTerracotta.interfaces.ITerracottaServerInfo"
+            />
+    
+            <browser:viewlet
+                name="js-TerracottaServer"
+                paths="/++resource++zenJavaTerracotta/terracottaserver.js"
+                weight="10"
+                manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
+                class="Products.ZenUI3.browser.javascript.JavaScriptSrcBundleViewlet"
+                permission="zope2.Public"
+            />
+
+            <utility provides="zope.schema.interfaces.IVocabularyFactory"
+                component=".info.TerracottaServergetEventClassesVocabulary"
+                name="TerracottaServergetEventClasses"
+            />
+
+            <!-- Datasource Info -->
+            <adapter factory="ZenPacks.community.zenJavaTerracotta.info.TerracottaServerDataSourceInfo"
+                for="ZenPacks.community.zenJavaTerracotta.datasources.TerracottaServerDataSource.TerracottaServerDataSource"
+                provides="ZenPacks.community.zenJavaTerracotta.interfaces.ITerracottaServerDataSourceInfo"
+            />
+
+            <utility provides="zope.schema.interfaces.IVocabularyFactory"
+                component=".info.TerracottaServerRedirectVocabulary"
+                name="TerracottaServerRedirectVocabulary"
+            />
+
+            <subscriber zcml:condition="installed ZenPacks.zenoss.DistributedCollector.interfaces"
+                for="ZenPacks.zenoss.DistributedCollector.DistributedPerformanceConf.DistributedPerformanceConf
+                     ZenPacks.zenoss.DistributedCollector.interfaces.ICollectorInstalled"
+                handler=".onCollectorInstalledTerracottaServer"
+            />
+
+            <!-- Component Info -->
+            <adapter factory="ZenPacks.community.zenJavaTerracotta.info.TerracottaClientInfo"
+                for="ZenPacks.community.zenJavaTerracotta.TerracottaClient.TerracottaClient"
+                provides="ZenPacks.community.zenJavaTerracotta.interfaces.ITerracottaClientInfo"
+            />
+    
+            <browser:viewlet
+                name="js-TerracottaClient"
+                paths="/++resource++zenJavaTerracotta/terracottaclient.js"
+                weight="10"
+                manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
+                class="Products.ZenUI3.browser.javascript.JavaScriptSrcBundleViewlet"
+                permission="zope2.Public"
+            />
+
+            <utility provides="zope.schema.interfaces.IVocabularyFactory"
+                component=".info.TerracottaClientgetEventClassesVocabulary"
+                name="TerracottaClientgetEventClasses"
+            />
+
+        </configure>
+    </configure>
+

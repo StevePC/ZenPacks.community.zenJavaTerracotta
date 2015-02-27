@@ -1,0 +1,2 @@
+ZenPacks.community.zenJavaApp>=3.0
+ZenPacks.community.ConstructionKit>=3.0

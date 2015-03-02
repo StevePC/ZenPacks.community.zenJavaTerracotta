@@ -3,13 +3,13 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.community.zenJavaTerracotta"
-VERSION = "1.0.0"
+VERSION = "3.0"
 AUTHOR = "Joseph Anderson"
 LICENSE = "GPLv2+"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.community']
 PACKAGES = ['ZenPacks', 'ZenPacks.community', 'ZenPacks.community.zenJavaTerracotta']
-INSTALL_REQUIRES = ['ZenPacks.community.zenJavaApp>=3.0', 'ZenPacks.community.ConstructionKit>=3.0']
-COMPAT_ZENOSS_VERS = ">=4.2"
+INSTALL_REQUIRES = ['ZenPacks.community.zenJavaApp', 'ZenPacks.community.ConstructionKit']
+COMPAT_ZENOSS_VERS = ">=4"
 PREV_ZENPACK_NAME = ""
 # STOP_REPLACEMENTS
 ################################

@@ -1,7 +1,3 @@
-from Products.DataCollector.plugins.CollectorPlugin import CollectorPlugin
-from Products.DataCollector.plugins.DataMaps import ObjectMap
-from Products.ZenUtils.Utils import prepId
-from ZenPacks.community.zenJavaApp.lib.JavaAppScan import *
 from ZenPacks.community.zenJavaApp.lib.CommonMBeanMap import *
 from ZenPacks.community.zenJavaTerracotta.Definition import *
 
@@ -23,18 +19,10 @@ class TerracottaServerMap(CommonMBeanMap):
     
     searchMBean = 'org.terracotta:type=Terracotta Server,name=DSO'
     
-    def process(self, device, results, log):
-        log.info("The plugin %s returned %s results." % (self.name(), len(results)))
-        rm = self.relMap()
-        for result in results:
-            om = self.objectMap(result)
-            om.server = device.id
-            #om.setTerracottaport = om.port
-            om.dropIfPassive = 'blah'
-            om.setJavaapp = ''
-            om.setIpservice = om.port
-            om.updateClientSettings = 'blah'
-            rm.append(om)
-            log.debug(om)
-        return rm
+    def postprocess(self, result, om, log):
+        ''''''
+        om.server = self.device.id
+        om.dropIfPassive = 'blah'
+        om.updateClientSettings = 'blah'
+        return om
 

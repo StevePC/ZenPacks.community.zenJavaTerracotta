@@ -1,10 +1,6 @@
-from Products.DataCollector.plugins.CollectorPlugin import CollectorPlugin
-from Products.DataCollector.plugins.DataMaps import ObjectMap
-from ZenPacks.community.zenJavaApp.lib.JavaAppScan import *
+from ZenPacks.community.zenJavaApp.lib.CommonMBeanMap import *
 from ZenPacks.community.zenJavaTerracotta.Definition import *
-from Products.ZenUtils.Utils import zenPath,prepId
 import socket
-
 
 
 __doc__ = """TerracottaClientMap
@@ -16,15 +12,13 @@ This version adds a relation to associated ipservice, javaapp, and terracottaser
 """
 
 
-class TerracottaClientMap(CollectorPlugin):
+class TerracottaClientMap(CommonMBeanMap):
     """Map JMX Client output table to model."""
-    compname = "os"
+    
     constr = Construct(TerracottaClientDefinition)
     relname = constr.relname
     modname = constr.zenpackComponentModule
     baseid = constr.baseid
-    transport = "python"
-    # use for validation
     deviceProperties = CollectorPlugin.deviceProperties + (
                     'zJmxUsername', 'zJmxPassword',
                     'zJavaAppPortRange' 'manageIp',
@@ -77,28 +71,34 @@ class TerracottaClientMap(CollectorPlugin):
     def collect(self, device, log):
         ''''''
         log.info("collecting %s for %s." % (self.name(), device.id))
+        TCSERVERMBEAN = 'org.terracotta:type=Terracotta Server,name=DSO'
+        TCCLIENTMBEAN = 'atxg:component-name=AppServer,subcomponent-name=EhCacheManager,mbean-name=TerracottaClient'
+        
         self.scan = JavaAppScan(device.manageIp, device.zJavaAppPortRange, 
                                 device.zJmxUsername, device.zJmxPassword,
                                 device.zJolokiaProxyHost, device.zJolokiaProxyPort,
                                 device.zJavaAppScanTimeout)
         self.scan.evalPorts()
-        TCSERVERMBEAN = 'org.terracotta:type=Terracotta Server,name=DSO'
-        TCCLIENTMBEAN = 'atxg:component-name=AppServer,subcomponent-name=EhCacheManager,mbean-name=TerracottaClient'
         output = []
-        for port, status in self.scan.portdict.items():
-            if status['isGood'] is True and self.scan.beanExists(port,TCSERVERMBEAN) is True:
-                #log.debug("got entry for %s: %s" % (port, status))
-                result = self.scan.getBeanAttributeValues(port=port, mbean=TCSERVERMBEAN, attributes=['ClientLiveObjectCount'], protocol=status['protocol'])
+        for jmx in self.scan.portdict.values():
+            # use these connection parameters
+            self.scan.proxy.setJMX(jmx)
+            if jmx.connected is True and self.scan.proxy.beanExists(TCSERVERMBEAN) is True:
+                result = self.scan.proxy.getBeanAttributeValues(mbean=TCSERVERMBEAN, attributes=['ClientLiveObjectCount'])
                 objects = self.scan.proxy.parseDictToList(result['ClientLiveObjectCount'])
                 for ob in objects:
                     info = {
                         'id': '',
                         'server': device.id,
-                        'serverport': port,
-                        'serveruser':  self.scan.username,
-                        'serverpassword': self.scan.password,
-                        'serverauth': status['useAuth'],
-                        'serverprotocol': status['protocol'],
+                        'serverport': jmx.port,
+                        'serveruser':  jmx.user,
+                        'serverpassword': jmx.password,
+                        'serverauth': jmx.auth,
+                        'serverprotocol': jmx.protocol,
+                        'enabled' : jmx.connected,
+                        'javaversion': jmx.javaversion,
+                        'vendorname': jmx.vendorname,
+                        'vendorproduct': jmx.vendorproduct,
                         'node': '', # should be client host name
                         'nodeport': '', # client JMX port
                         'nodeid': '', # identifier following the "/" character
@@ -124,24 +124,17 @@ class TerracottaClientMap(CollectorPlugin):
                     info['nodeip'] = socket.gethostbyname(info['node'])
                     # attempt to find node port
                     try:
-                        envoutput = self.scan.getBeanAttributeValues(port=port, mbean=data['fullname'], attributes=['Environment'], protocol=status['protocol'])
+                        envoutput = self.scan.proxy.getBeanAttributeValues(mbean=data['fullname'], attributes=['Environment'])
                         info['nodeport'] = self.findJMXPort(self.parseEnvironmentInfo(envoutput['Environment']))
                     except:  pass
                     output.append(info)
         return output
     
-    def process(self, device, results, log):
+    def postprocess(self, result, om, log):
         ''''''
-        log.info("The plugin %s returned %s results." % (self.name(), len(results)))
-        if len(results) == 0: return None
-        rm = self.relMap()
-        for result in results:
-            om = self.objectMap(result)
-            om.setTerracottaserver = om.server
-            om.setJavaapp = om.nodeport
-            om.setIpservice = om.nodeport
-            #om.setClientSettings = 'blah'
-            rm.append(om)
-            log.debug(om)
-        return rm
+        om.setTerracottaserver = om.server
+        om.setJavaapp = om.nodeport
+        om.setIpservice = om.nodeport
+        #om.setClientSettings = 'blah'
+        return om
 

@@ -5,7 +5,7 @@
 NAME = "ZenPacks.community.zenJavaTerracotta"
 VERSION = "3.0"
 AUTHOR = "Joseph Anderson"
-LICENSE = "GPLv2+"
+LICENSE = "Apache"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.community']
 PACKAGES = ['ZenPacks', 'ZenPacks.community', 'ZenPacks.community.zenJavaTerracotta']
 INSTALL_REQUIRES = ['ZenPacks.community.zenJavaApp', 'ZenPacks.community.ConstructionKit']
